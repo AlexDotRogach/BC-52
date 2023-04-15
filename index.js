@@ -13,7 +13,6 @@
 // Аналогічно перевантажити метод returnBook(). Виводить на консоль повідомлення 
 // "Alex повернув книги: Пригоди, Словник, Енциклопедія". Або "Alex повернув 3 книги".
 
-
 const faculties = ["gryffindor", "Slytherin", "Ravenclaw", "Hufflepuff"];
 
 const books = [
@@ -43,7 +42,6 @@ const books = [
     "amount" : 3
   }
 ]
-
 
 const readers = [
   {
@@ -85,7 +83,8 @@ class Reader {
       errorByBook : "Some trobules with books"
     },
     success : {
-      successTakeBook : (name, amount, nameBook) => `${name} взяв ${amount} книги, назва - ${nameBook}`
+      successTakeBook : (name, amount, nameBook) => `${name} взяв ${amount} книги, назва - ${nameBook}`,
+      successReturnBook :(name, amount, nameBook) => `${name} повернув книгy: ${nameBook} - кількість: ${amount}.`
     }
   }
 
@@ -96,6 +95,14 @@ class Reader {
   constructor (readers, books) {
     this.#readers = readers;
     this.#books = books;
+  }
+
+  get getStatic() {
+    return {...this.#statics}
+  }
+
+  get getBooks() {
+    return [...this.#books]
   }
 
   takeBook (idTicket, amount, nameBook) {
@@ -127,22 +134,48 @@ class Reader {
 
     ourBook.amount -= amount;
   }
+
+  returnBook (idTicket, amount, nameBook) {
+    const whoReturn = this.#readers.find(reader => reader.number_ticket === idTicket);
+
+    if (!whoReturn) {
+      console.log(Reader.Snotification.error.errorByTicketId);
+      return;
+    }
+
+    const booksByThisPerson = this.#statics[whoReturn.name];
+
+    const book = booksByThisPerson.find(book => book.name === nameBook);
+
+    if (!(book && book.amount >= amount)) {
+      console.log(Reader.Snotification.error.errorByBook);
+      return;
+    }
+
+    this.#books.find(book => book.name === nameBook).amount += amount;
+
+    console.log(Reader.Snotification.success.successReturnBook(whoReturn.name, amount, nameBook));
+
+    if (book.amount === amount) {
+      const indexBook = booksByThisPerson.findIndex(book => book.name === nameBook);
+
+      booksByThisPerson.splice(indexBook, 1);
+
+      return;
+    } 
+
+    book.amount -= amount;
+  }
 }
-
-// 1. Перевірка чи є такий айді тікета 
-// 2. Чи є така книга
-// 3. Чи є така кількість книг яка необхідна
-
-// 4. Якщо все гуд - то виводемо консоль лог і додаємо змінні в наші дані (statics, books)
 
 const mainReader = new Reader(readers, books)
 
-mainReader.takeBook(11112, 2, "Война и мир")
-mainReader.takeBook(11112, 2, "Война и мир")
-mainReader.takeBook(11112, 2, "Война и мир")
-mainReader.takeBook(11112, 2, "Война и мир")
+mainReader.takeBook(11112, 3, "Война и мир")
+mainReader.takeBook(11112, 2, "Преступление и наказание")
+mainReader.takeBook(11111, 2, "Преступление и наказание")
 
+mainReader.returnBook(11112, 3, "Война и мир")
+mainReader.returnBook(11112, 2, "Преступление и наказание")
 
-
-
-
+console.log(mainReader.getStatic);
+console.log(mainReader.getBooks);
